@@ -1,14 +1,6 @@
 name: CI
 
-on: 
-  push:
-    branches:
-      - main
-      - '!/refs/heads/dependabot/*'
-  pull_request:
-    branches:
-      - '*'
-      - '!/refs/heads/patch*'
+on: [push]
 
 # this is required by spotless for JDK 16+
 env:
@@ -26,17 +18,76 @@ jobs:
       matrix:
         java: [ 17 ]
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+          pip install numpy
+      - run: sudo apt update
+      - run: sudo apt install inotify-tools
+      - run: inotifywait -mr /home/runner/work/github-api/github-api/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+      - run: touch starting_build_uses-checkout_29
+      - run: rm starting_build_uses-checkout_29
       - uses: actions/checkout@v3
+      - run: touch starting_build_SetupJDK_30
+      - run: rm starting_build_SetupJDK_30
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: 'maven'
+      - run: touch starting_build_MavenInstallskipTests_36
+      - run: rm starting_build_MavenInstallskipTests_36
       - name: Maven Install (skipTests)
         env:
           MAVEN_OPTS: ${{ env.JAVA_11_PLUS_MAVEN_OPTS }}
         run: mvn -B clean install -DskipTests --file pom.xml
+      - run: touch starting_finished_finished_8979874
+        if: always()
+      - run: rm starting_finished_finished_8979874
+        if: always()
+      - name: Check script file exists and execute
+        if: always()
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: .github/workflows/script.py
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          python .github/workflows/script.py
+      - name: Checkout to destination CI-analyzes repo
+        uses: actions/checkout@v3
+        if: always()
+        with:
+          path: github-api
+          ref: '1679891210-168599f'
+          repository: 'UT-SE-Research/ci-analyzes'
+          token: '${{ secrets.API_TOKEN_GITHUB }}'
+          persist-credentials: true
+      - name: Copy files to push to another directory
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          mkdir -p github-api/github-api/.github/workflows/maven-build/build_java_${{ matrix.java }}
+          cp -rvT optimizing-ci-builds-ci-analysis github-api/github-api/.github/workflows/maven-build/build_java_${{ matrix.java }}
+      - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1679891210-168599f/github-api/.github/workflows/maven-build/build_java_${{ matrix.java }}
+      - name: Pushes analysis to another repository
+        if: steps.check_files.outputs.files_exists == 'true'
+        working-directory: github-api
+        run: |
+          commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+          git config --global user.name 'UT-SE-Research'
+          git config --global user.email '${{ secrets.EMAIL }}'
+          git add .
+          git commit -m $commit_message
+          while ! git push -f origin 1679891210-168599f; do
+            git pull --rebase origin 1679891210-168599f
+            sleep $((RANDOM % 5 + 1))
+          done
   site:
     name: site (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
@@ -45,17 +96,76 @@ jobs:
       matrix:
         java: [ 17 ]
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+          pip install numpy
+      - run: sudo apt update
+      - run: sudo apt install inotify-tools
+      - run: inotifywait -mr /home/runner/work/github-api/github-api/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+      - run: touch starting_site_uses-checkout_48
+      - run: rm starting_site_uses-checkout_48
       - uses: actions/checkout@v3
+      - run: touch starting_site_SetupJDK_49
+      - run: rm starting_site_SetupJDK_49
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: 'maven'
+      - run: touch starting_site_MavenSite_55
+      - run: rm starting_site_MavenSite_55
       - name: Maven Site
         env:
           MAVEN_OPTS: ${{ env.JAVA_11_PLUS_MAVEN_OPTS }}
         run: mvn -B  clean site -D enable-ci --file pom.xml
+      - run: touch starting_finished_finished_8979874
+        if: always()
+      - run: rm starting_finished_finished_8979874
+        if: always()
+      - name: Check script file exists and execute
+        if: always()
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: .github/workflows/script.py
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          python .github/workflows/script.py
+      - name: Checkout to destination CI-analyzes repo
+        uses: actions/checkout@v3
+        if: always()
+        with:
+          path: github-api
+          ref: '1679891210-168599f'
+          repository: 'UT-SE-Research/ci-analyzes'
+          token: '${{ secrets.API_TOKEN_GITHUB }}'
+          persist-credentials: true
+      - name: Copy files to push to another directory
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          mkdir -p github-api/github-api/.github/workflows/maven-build/site_java_${{ matrix.java }}
+          cp -rvT optimizing-ci-builds-ci-analysis github-api/github-api/.github/workflows/maven-build/site_java_${{ matrix.java }}
+      - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1679891210-168599f/github-api/.github/workflows/maven-build/site_java_${{ matrix.java }}
+      - name: Pushes analysis to another repository
+        if: steps.check_files.outputs.files_exists == 'true'
+        working-directory: github-api
+        run: |
+          commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+          git config --global user.name 'UT-SE-Research'
+          git config --global user.email '${{ secrets.EMAIL }}'
+          git add .
+          git commit -m $commit_message
+          while ! git push -f origin 1679891210-168599f; do
+            git pull --rebase origin 1679891210-168599f
+            sleep $((RANDOM % 5 + 1))
+          done
   test-8:
     name: test (${{ matrix.os }}, Java 8)
     runs-on: ${{ matrix.os }}-latest
@@ -65,7 +175,22 @@ jobs:
         os: [ ubuntu ]
         java: [ 8 ]
     steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+        pip install numpy
+    - run: sudo apt update
+    - run: sudo apt install inotify-tools
+    - run: inotifywait -mr /home/runner/work/github-api/github-api/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+    - run: touch starting_test8_uses-checkout_68
+    - run: rm starting_test8_uses-checkout_68
     - uses: actions/checkout@v3
+    - run: touch starting_test8_SetupJDK_69
+    - run: rm starting_test8_SetupJDK_69
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
@@ -73,10 +198,56 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
     # JDK 8
+    - run: touch starting_test8_MavenInstallwithCodeCoverage_76
+    - run: rm starting_test8_MavenInstallwithCodeCoverage_76
     - name: Maven Install with Code Coverage
       run: mvn -B clean install -D enable-ci -Djapicmp.skip --file pom.xml
+    - run: touch starting_test8_CodecovReport_78
+    - run: rm starting_test8_CodecovReport_78
     - name: Codecov Report 
       uses: codecov/codecov-action@v3.1.1
+    - run: touch starting_finished_finished_8979874
+      if: always()
+    - run: rm starting_finished_finished_8979874
+      if: always()
+    - name: Check script file exists and execute
+      if: always()
+      id: check_files
+      uses: andstor/file-existence-action@v1
+      with:
+        files: .github/workflows/script.py
+    - name: File exists
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: |
+        python .github/workflows/script.py
+    - name: Checkout to destination CI-analyzes repo
+      uses: actions/checkout@v3
+      if: always()
+      with:
+        path: github-api
+        ref: '1679891210-168599f'
+        repository: 'UT-SE-Research/ci-analyzes'
+        token: '${{ secrets.API_TOKEN_GITHUB }}'
+        persist-credentials: true
+    - name: Copy files to push to another directory
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: |
+        mkdir -p github-api/github-api/.github/workflows/maven-build/test8_os_${{ matrix.os }}_java_${{ matrix.java }}
+        cp -rvT optimizing-ci-builds-ci-analysis github-api/github-api/.github/workflows/maven-build/test8_os_${{ matrix.os }}_java_${{ matrix.java }}
+    - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1679891210-168599f/github-api/.github/workflows/maven-build/test8_os_${{ matrix.os }}_java_${{ matrix.java }}
+    - name: Pushes analysis to another repository
+      if: steps.check_files.outputs.files_exists == 'true'
+      working-directory: github-api
+      run: |
+        commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+        git config --global user.name 'UT-SE-Research'
+        git config --global user.email '${{ secrets.EMAIL }}'
+        git add .
+        git commit -m $commit_message
+        while ! git push -f origin 1679891210-168599f; do
+          git pull --rebase origin 1679891210-168599f
+          sleep $((RANDOM % 5 + 1))
+        done
   test:
     name: test (${{ matrix.os }}, Java ${{ matrix.java }})
     runs-on: ${{ matrix.os }}-latest
@@ -86,7 +257,22 @@ jobs:
         os: [ ubuntu, windows ]
         java: [ 11, 17 ]
     steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+        pip install numpy
+    - run: sudo apt update
+    - run: sudo apt install inotify-tools
+    - run: inotifywait -mr /home/runner/work/github-api/github-api/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
+    - run: touch starting_test_uses-checkout_89
+    - run: rm starting_test_uses-checkout_89
     - uses: actions/checkout@v3
+    - run: touch starting_test_SetupJDK_90
+    - run: rm starting_test_SetupJDK_90
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
@@ -94,13 +280,57 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
     # JDK 11+
+    - run: touch starting_test_MavenInstallwithoutCodeCoverage_97
+    - run: rm starting_test_MavenInstallwithoutCodeCoverage_97
     - name: Maven Install without Code Coverage
-      if: matrix.os == 'windows'
       env:
         MAVEN_OPTS: ${{ env.JAVA_11_PLUS_MAVEN_OPTS }}
       run: mvn -B clean install -D japicmp.skip=true --file pom.xml "-Dsurefire.argLine=--add-opens java.base/java.net=ALL-UNNAMED"
+    - run: touch starting_test_MavenInstallwithCodeCoverage_102
+    - run: rm starting_test_MavenInstallwithCodeCoverage_102
     - name: Maven Install with Code Coverage
-      if: matrix.os != 'windows'
       env:
         MAVEN_OPTS: ${{ env.JAVA_11_PLUS_MAVEN_OPTS }}
       run: mvn -B clean install -D enable-ci --file pom.xml "-Dsurefire.argLine=--add-opens java.base/java.net=ALL-UNNAMED"
+    - run: touch starting_finished_finished_8979874
+      if: always()
+    - run: rm starting_finished_finished_8979874
+      if: always()
+    - name: Check script file exists and execute
+      if: always()
+      id: check_files
+      uses: andstor/file-existence-action@v1
+      with:
+        files: .github/workflows/script.py
+    - name: File exists
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: |
+        python .github/workflows/script.py
+    - name: Checkout to destination CI-analyzes repo
+      uses: actions/checkout@v3
+      if: always()
+      with:
+        path: github-api
+        ref: '1679891210-168599f'
+        repository: 'UT-SE-Research/ci-analyzes'
+        token: '${{ secrets.API_TOKEN_GITHUB }}'
+        persist-credentials: true
+    - name: Copy files to push to another directory
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: |
+        mkdir -p github-api/github-api/.github/workflows/maven-build/test_os_${{ matrix.os }}_java_${{ matrix.java }}
+        cp -rvT optimizing-ci-builds-ci-analysis github-api/github-api/.github/workflows/maven-build/test_os_${{ matrix.os }}_java_${{ matrix.java }}
+    - run: echo https://github.com/UT-SE-Research/ci-analyzes/tree/1679891210-168599f/github-api/.github/workflows/maven-build/test_os_${{ matrix.os }}_java_${{ matrix.java }}
+    - name: Pushes analysis to another repository
+      if: steps.check_files.outputs.files_exists == 'true'
+      working-directory: github-api
+      run: |
+        commit_message=$GITHUB_REPOSITORY@$GITHUB_WORKFLOW_SHA
+        git config --global user.name 'UT-SE-Research'
+        git config --global user.email '${{ secrets.EMAIL }}'
+        git add .
+        git commit -m $commit_message
+        while ! git push -f origin 1679891210-168599f; do
+          git pull --rebase origin 1679891210-168599f
+          sleep $((RANDOM % 5 + 1))
+        done
