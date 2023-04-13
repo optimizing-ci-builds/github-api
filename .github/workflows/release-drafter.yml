@@ -2,9 +2,7 @@
 name: Release Drafter
 
 on:
-  push:
-    branches:
-      - main
+  push: # one-run-to-find-them-all
 
 permissions:
   contents: read
