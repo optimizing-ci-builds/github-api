@@ -2,9 +2,6 @@ name: CI
 
 on: 
   push:
-    branches:
-      - main
-      - '!/refs/heads/dependabot/*'
   pull_request:
     branches:
       - '*'
