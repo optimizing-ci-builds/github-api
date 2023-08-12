@@ -23,6 +23,8 @@ jobs:
           pip install numpy
           pip install inotify
       - run: sudo apt update
+      - uses: actions/checkout@v3
+      - run: python .github/workflows/inotify_script.py /home/runner/work/github-api/github-api /home/runner/inotify-logs.csv & echo 'optimizing-ci-builds'
       - run: touch starting_updatereleasedraft_ReleaseDrafter_19
       - run: rm starting_updatereleasedraft_ReleaseDrafter_19
       - name: Release Drafter
