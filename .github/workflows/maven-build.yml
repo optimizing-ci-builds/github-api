@@ -1,10 +1,7 @@
 name: CI
 
-on: 
+on: # one-run-to-find-them-all
   push:
-    branches:
-      - main
-      - '!/refs/heads/dependabot/*'
   pull_request:
     branches:
       - '*'
