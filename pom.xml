@@ -82,14 +82,6 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
-          <configuration>
-            <!-- SUREFIRE-1226 workaround -->
-            <trimStackTrace>false</trimStackTrace>
-          </configuration>
-        </plugin>
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>3.2.1</version>
@@ -301,18 +293,6 @@
             </annotationProcessorPath>
           </annotationProcessorPaths>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <configuration>
-              <excludesFile>src/test/resources/slow-or-flaky-tests.txt</excludesFile>
-              <argLine>@{jacoco.surefire.argLine} ${surefire.argLine}</argLine>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -618,38 +598,6 @@
       </activation>
       <build>
         <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>okhttp-test</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <classesDirectory>${project.basedir}/target/github-api-${project.version}.jar</classesDirectory>
-                  <excludesFile>src/test/resources/slow-or-flaky-tests.txt</excludesFile>
-                  <argLine>@{jacoco.surefire.argLine} ${surefire.argLine} -Dtest.github.connector=okhttp</argLine>
-                </configuration>
-              </execution>
-              <execution>
-                <id>slow-or-flaky-test</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <classesDirectory>${project.basedir}/target/github-api-${project.version}.jar</classesDirectory>
-                  <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                  <!-- There are some tests that take longer or are a little
-                    flaky. Run them here. -->
-                  <includesFile>src/test/resources/slow-or-flaky-tests.txt</includesFile>
-                  <argLine>@{jacoco.surefire.argLine} ${surefire.argLine}</argLine>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
     </profile>
@@ -840,37 +788,6 @@
       </activation>
       <build>
         <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>java11-test</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <classesDirectory>${project.basedir}/target/github-api-${project.version}.jar</classesDirectory>
-                  <useSystemClassLoader>false</useSystemClassLoader>
-                  <excludesFile>src/test/resources/slow-or-flaky-tests.txt</excludesFile>
-                  <argLine>@{jacoco.surefire.argLine} ${surefire.argLine} -Dtest.github.connector=httpclient</argLine>
-                </configuration>
-              </execution>
-              <execution>
-                <id>java11-urlconnection-test</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <classesDirectory>${project.basedir}/target/github-api-${project.version}.jar</classesDirectory>
-                  <useSystemClassLoader>false</useSystemClassLoader>
-                  <excludesFile>src/test/resources/slow-or-flaky-tests.txt</excludesFile>
-                  <argLine>@{jacoco.surefire.argLine} ${surefire.argLine} -Dtest.github.connector=urlconnection</argLine>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
     </profile>
