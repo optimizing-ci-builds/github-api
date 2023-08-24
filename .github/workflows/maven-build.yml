@@ -50,7 +50,10 @@ jobs:
           distribution: 'adopt'
           cache: 'maven'
       - name: Maven Site
-        run: mvn -B  clean site -D enable-ci --file pom.xml
+        run: |
+          mvn -B  clean site -D enable-ci --file pom.xml
+          cd ./target/
+          ls
   test-8:
     name: test (${{ matrix.os }}, Java 8)
     runs-on: ${{ matrix.os }}-latest
@@ -71,6 +74,7 @@ jobs:
     - name: Maven Install with Code Coverage
       run: |
         mvn -B clean install -D enable-ci -Djapicmp.skip --file pom.xml
+        cd ./target/
         ls      
     - name: Codecov Report 
       uses: codecov/codecov-action@v3.1.0
@@ -100,4 +104,7 @@ jobs:
       if: matrix.os != 'windows'
       env:
         MAVEN_OPTS: ${{ env.JAVA_11_PLUS_MAVEN_OPTS }}
-      run: mvn -B clean install -D enable-ci --file pom.xml "-Dsurefire.argLine=--add-opens java.base/java.net=ALL-UNNAMED"
+      run: |
+        mvn -B clean install -D enable-ci --file pom.xml "-Dsurefire.argLine=--add-opens java.base/java.net=ALL-UNNAMED"
+        cd ./target/
+        ls
